@@ -233,7 +233,7 @@ export const settingsInfo: Record<string, any> = {
   saveData: {
     type: "non-settings-multi",
     label: "Save Data",
-    description: "Not implemented yet.",
+    description: "Export, import, or delete your saved Miis.",
     choices: [
       {
         label: "Import",
@@ -262,19 +262,38 @@ export const settingsInfo: Record<string, any> = {
 
             const reader = new FileReader();
 
-            reader.onload = function (event) {
-              const fileContent = event.target!.result;
+            reader.onload = async function (event) {
+              const fileContent = event.target!.result as string;
               console.log(fileContent);
+              try {
+                const data = JSON.parse(fileContent);
+                // Clear existing Mii data
+                const keys = await localforage.keys();
+                for (const key of keys.filter((k) => k.startsWith("mii-"))) {
+                  await localforage.removeItem(key);
+                }
+                // Import new data
+                for (const [key, value] of Object.entries(data)) {
+                  await localforage.setItem(key, value);
+                }
+                Modal.alert("Success", "Your Mii data has been imported successfully!");
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } catch (err) {
+                Modal.alert("Error", "Failed to import Mii data. The file may be corrupted.");
+                console.error(err);
+              }
             };
 
             reader.onerror = function (event) {
               console.error("File reading error:", event);
+              Modal.alert("Error", "Failed to read the file.");
             };
 
             reader.readAsText(input.files[0]);
           });
         },
-        disabled: true,
       },
       {
         label: "Export",
@@ -300,13 +319,29 @@ export const settingsInfo: Record<string, any> = {
             a.remove();
           });
         },
-        disabled: true,
       },
       {
         label: "Delete",
         type: "danger",
-        async select() {},
-        disabled: true,
+        async select() {
+          if (
+            (await Modal.prompt(
+              "WARNING",
+              "This will delete ALL of your saved Miis forever!\nThis action cannot be undone.\n\nAre you certain?",
+              "body"
+            )) === false
+          )
+            return;
+
+          const keys = await localforage.keys();
+          for (const key of keys.filter((k) => k.startsWith("mii-"))) {
+            await localforage.removeItem(key);
+          }
+          Modal.alert("Success", "All Mii data has been deleted.");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        },
       },
     ],
   },
