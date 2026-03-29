@@ -103,8 +103,6 @@ export const newFromQRCode = async () => {
         case QrScanDataType.GenericWiiU3ds:
           mii = new Mii(data);
           qrImportConfirmation(mii, "3DS/Wii U QR Code");
-          mii = new Mii(data);
-          qrImportConfirmation(mii, "3DS/Wii U QR Code");
           break;
         case QrScanDataType.ExtraDataTL:
           Modal.alert(
