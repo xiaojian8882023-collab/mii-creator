@@ -445,10 +445,12 @@ function handleQrCode(result: { bytes: any; noQrCode: any }) {
         );
 
         if (decryptedExtraData.length === 240) {
-          qrCallback(
-            Buffer.concat([decryptedStoreDataBuf]),
-            QrScanDataType.ExtraDataTL
-          );
+          if (qrCallback) {
+            qrCallback(
+              Buffer.concat([decryptedStoreDataBuf]),
+              QrScanDataType.ExtraDataTL
+            );
+          }
           // QrScannerError(
           //   "Tomodachi Life codes won't retain hair dye info yet."
           // );
@@ -481,15 +483,19 @@ function handleQrCode(result: { bytes: any; noQrCode: any }) {
         if (extDataBuf.length === 10 || extDataBuf.length === 12) {
           console.log("This is probably miic data");
           // put together the data
-          qrCallback(
-            Buffer.concat([decryptedStoreDataBuf, extDataBuf]),
-            QrScanDataType.ExtraDataMiiC
-          );
+          if (qrCallback) {
+            qrCallback(
+              Buffer.concat([decryptedStoreDataBuf, extDataBuf]),
+              QrScanDataType.ExtraDataMiiC
+            );
+          }
         }
       });
   } else {
     console.log("No extra data");
-    qrCallback(decryptedStoreDataBuf, QrScanDataType.GenericWiiU3ds);
+    if (qrCallback) {
+      qrCallback(decryptedStoreDataBuf, QrScanDataType.GenericWiiU3ds);
+    }
   }
 }
 
